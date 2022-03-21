@@ -6,13 +6,14 @@ import foodsJson from '../foods.json';
 import FoodBox from './FoodBox';
 import Search from './Search';
 import TodayFoods from './TodayFoods';
+import AddFoodForm from './AddFoodForm';
 
 function App() {
   const [foods, setFoods] = useState([...foodsJson]);
   const [searchTerm, setSearchTerm] = useState('');
   const [todayFoods, setTodayFoods] = useState([]);
+  const [toggleAddFood, setToggleAddFood] = useState(false);
 
-  // Faz o filtro da lista de comidas somente quando o termo de busca terminou de atualizar
   useEffect(() => {
     filterFoods(searchTerm);
   }, [searchTerm]);
@@ -36,6 +37,18 @@ function App() {
   function onFoodAdd(foodObj) {
     const clone = [...todayFoods];
 
+    let exists = false;
+    for (let i = 0; i < clone.length; i++) {
+      if (clone[i].name === foodObj.name) {
+        exists = true;
+        clone[i].quantity += foodObj.quantity;
+      }
+    }
+
+    if (exists === false) {
+      clone.push(foodObj);
+    }
+
     clone.push(foodObj);
 
     setTodayFoods(clone);
@@ -43,10 +56,31 @@ function App() {
 
   console.log(todayFoods);
 
+  function handleSubmitNewFood(newInfo) {
+    const cloneFoods = [...foods];
+    cloneFoods.unshift({
+      name: newInfo.name,
+      calories: Number(newInfo.calories),
+      image: newInfo.image,
+      quantity: 0,
+    });
+  }
+
+  function removeTodayFood(index) {
+    const cloneTodayFood = [...todayFoods];
+    cloneTodayFood.splice(index, 1);
+    setTodayFoods(cloneTodayFood);
+  }
   return (
     <div className="container">
       <h1 className="title">IronNutrition</h1>
-      {/* FAZER ITERATION 3 AQUI */}
+      <button
+        className="button"
+        onClick={() => setToggleAddFood(!toggleAddFood)}
+      >
+        Add Button
+      </button>
+      {toggleAddFood && <AddFoodForm onSubmitNewFood={handleSubmitNewFood} />}
       <Search
         value={searchTerm}
         onChange={(event) => setSearchTerm(event.target.value)}
@@ -62,7 +96,7 @@ function App() {
             />
           ))}
         </div>
-        <TodayFoods todayFoods={todayFoods} />
+        <TodayFoods todayFoods={todayFoods} removeTodayFood={removeTodayFood} />
       </div>
     </div>
   );
